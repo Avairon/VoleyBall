@@ -1,30 +1,39 @@
-﻿#include <iostream>
+#include <iostream>
 #include <string>
 #include <fstream>
+#include <stdio.h>
 
-int teamA[6]; 
+int teamA[6];
 int teamB[6]; // массивы для хранения сторон команд
 
 int partScoreA = 0;
 int partScoreB = 0; //счет партии
 
-int scoreA = 3;
+int scoreA = 0;
 int scoreB = 0; //счет (в общем)
 
 int lastGoal = 0;
 
-//std::ofstream log;
+std::ofstream logg;
+
+
+void logs(std::string message)
+{
+    logg.open("log.txt", std::ofstream::app);
+    logg << message << std::endl;
+    logg.close();
+}
 
 void reverse(int arra1[6]) //функция для перехода
 {
-        int buffer1 = arra1[5];
-        arra1[5] = arra1[4];
-        arra1[4] = arra1[3];
-        arra1[3] = arra1[2];
-        arra1[2] = arra1[1];
-        arra1[1] = arra1[0];
-        arra1[0] = buffer1;
-    
+    int buffer1 = arra1[5];
+    arra1[5] = arra1[4];
+    arra1[4] = arra1[3];
+    arra1[3] = arra1[2];
+    arra1[2] = arra1[1];
+    arra1[1] = arra1[0];
+    arra1[0] = buffer1;
+
 }
 
 void graphic(int arra1[6], int arra2[6]) //функция для отображения поля
@@ -37,8 +46,7 @@ void graphic(int arra1[6], int arra2[6]) //функция для отображ�
 
 void startGame(int arra1[6], int arra2[6]) //функция для ввода команд
 {
-    //log.open("D:\log.txt");
-    //log << "Game was started!";
+    logs("Game was started!"); // std::to_string(5) для приписывания
 
     std::cout << "Enter command A" << "\n";
 
@@ -63,6 +71,7 @@ void action(int* lastGoal, int* partScoreA, int* partScoreB) //функция д
     int playerAction;
     std::string whatAction;
 
+    logg.open("log.txt", std::ofstream::app);
 
     std::cout << "which team performed the action?(a or b)\n";
     std::cin >> teamAction;
@@ -75,14 +84,20 @@ void action(int* lastGoal, int* partScoreA, int* partScoreB) //функция д
 
     std::cout << "\nwhat action was performed?\n";
     std::cout << "a - Attack; b - Block, p - Supply, o - Error (P.S. Please, don't write anything except a, b, p, or o) \n";
-    std::cin >> whatAction;                      
+    std::cin >> whatAction;
 
-    if(whatAction != "o")
-    { 
+    if (whatAction != "a" && whatAction != "b" && whatAction != "p" && whatAction != "o")
+    {
+        std::cout << "You choose wrong action, please retry\n";
+        return;
+    }
+
+    if (whatAction != "o")
+    {
         std::cout << "which player performed the action?(player's position number)\n";
         std::cin >> playerAction;
 
-        if (playerAction <= 0 && playerAction >= 7)
+        if (playerAction <= 0 or playerAction >= 7)
         {
             std::cout << "You choose wrong player place number, please retry\n";
             return;
@@ -90,28 +105,33 @@ void action(int* lastGoal, int* partScoreA, int* partScoreB) //функция д
 
         if (teamAction == "a")
         {
-            if (*lastGoal == 2) reverse(teamA);
+            logg << "Player from team A got a point!" << std::endl;
+        }
+        if (teamAction == "b")
+        {
+            logg << "Player from team B got a point!" << std::endl;
+        }
+
+
+        if (teamAction == "a")
+        {
+            if (*lastGoal == 2) { reverse(teamA);  logg << "Team A reverse!" << std::endl; }
+
             *lastGoal = 1;
             *partScoreA += 1;
         }
 
         if (teamAction == "b")
         {
-            if (*lastGoal == 1) reverse(teamB);
+            if (*lastGoal == 1) { reverse(teamB);  logg << "Team B reverse!" << std::endl; }
+
             *lastGoal = 2;
             *partScoreB += 1;
         }
+        
     }
 
-    if (whatAction != "a" && whatAction != "b" && whatAction != "p" && whatAction != "o")
-    {
-        std::cout << "You choose wrong action, please retry\n";
-        return;
-    }
-    else
-    {
-        //log.write("");
-    }
+    logg.close();
 }
 
 void scorePlus(int* partScoreA, int* partScoreB, int* scoreA, int* scoreB) //функция меняющая очки партий
@@ -138,7 +158,7 @@ void playerReplace(int arra1[6], int arra2[6]) //функция замены
     std::cout << "which player?(player's position number)\n";
     std::cin >> playerPlace;
 
-    if (playerPlace <= 0 && playerPlace >= 7)
+    if (playerPlace <= 0 or playerPlace >= 7)
     {
         std::cout << "You choose wrong player place number, please retry\n";
         return;
@@ -149,14 +169,14 @@ void playerReplace(int arra1[6], int arra2[6]) //функция замены
 
     if (team == "a") arra1[playerPlace - 1] = playerNum;
     if (team == "b") arra2[playerPlace - 1] = playerNum;
-    
+
 }
 
 int main()
 {
-    
-
     startGame(teamA, teamB);
+
+    logg.open("log.txt", std::ofstream::app);
 
     while (true)
     {
@@ -164,23 +184,29 @@ int main()
         int choose;
         std::cout << "what do you want to do?\n";
         std::cout << "1 - Replace Player, 2 - Action\n";
+
         std::cin >> choose;
 
-        switch (choose)
-        {
-        case(1):
-            playerReplace(teamA, teamB);
-            break;
-        case(2):
-            action(&lastGoal, &partScoreA, &partScoreB);
-            break;
+        if (choose == 1 or choose == 2) {
+            switch (choose)
+            {
+            case(1):
+                choose = 3;
+                playerReplace(teamA, teamB);
+                break;
+            case(2):
+                choose = 3;
+                action(&lastGoal, &partScoreA, &partScoreB);
+                break;
+            default:
+                choose = 3;
+                break;
+            }
         }
 
         scorePlus(&partScoreA, &partScoreB, &scoreA, &scoreB);
 
-        if (scoreA == 3) { std::cout << "Team A win!\n"; break; }
-        if (scoreB == 3) { std::cout << "Team B win!\n"; break; }
+        if (scoreA == 3) { std::cout << "Team A win!\n"; logg << "Team A win!" << std::endl; logg.close();  break; }
+        if (scoreB == 3) { std::cout << "Team B win!\n"; logg << "Team B win!" << std::endl; logg.close();  break; }
     }
 }
-
-
